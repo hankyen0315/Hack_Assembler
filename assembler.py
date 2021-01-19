@@ -23,6 +23,7 @@ if __name__ == "__main__":
     
     abs_path_to_ouput = abs_path+sub_dir_bin
     output_file = open(abs_path_to_ouput+"\\"+file_partial_name+".hack", "w")
+    
     for code in parser.bin_file_buffer:
         output_file.write(code+"\n")
     output_file.close()
