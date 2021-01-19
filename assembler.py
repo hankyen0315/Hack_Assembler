@@ -1,3 +1,5 @@
+from sys import argv
+from os import getcwd
 from Parser import Parser
 
 
@@ -6,14 +8,16 @@ from Parser import Parser
 
     
 if __name__ == "__main__":
-    file_name = input("Please enter the asm file you want to translate: ")
-    abs_path = "D:\\College\\Introduction to Computer\\Hack_Assembler"
+    if len(argv) != 2:
+        print("Usage:python assembler.py <asmfile.asm>")
+    file_name = str(argv[1])
+    file_partial_name = file_name.split(".")[0]
+    abs_path = str(getcwd())
     
     parser = Parser(file_name,abs_path = abs_path)
     parser.parse()
     
-    file_partial_name = file_name.split(".")[0]
-
+    
     output_file = open(abs_path+"\\"+file_partial_name+".hack", "w")
     for code in parser.bin_file_buffer:
         output_file.write(code+"\n")

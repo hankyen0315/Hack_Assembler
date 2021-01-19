@@ -1,5 +1,8 @@
-with open("hack.txt","r") as f:
-    for line in f.readlines():
-        print(line)
+from sys import argv
+from os import getcwd
+
+
+print(getcwd())
+for i in range(len(argv)):
+    print(argv[i])
     
-    f.close()

@@ -11,7 +11,7 @@ class Parser():
         self.variable_map = {}
         self.free_address = 16
         self.get_file_without_symbol()
-        self.debug_print_file()
+        #self.debug_print_file()
         
     def debug_print_file(self):
         for line in self.content:
