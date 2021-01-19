@@ -4,39 +4,55 @@ from hack_asm_spec import *
 class Parser():
     def __init__(self,file_name,abs_path = ""):
         self.bin_file_buffer = []
-        self.asm_file = open(abs_path+"\\"+file_name,"r")
-        self.content = self.store_file()
-        self.asm_file.close()
+        self.file_content = []
         self.label_map = {}
         self.variable_map = {}
         self.free_address = 16
-        self.get_file_without_symbol()
-        #self.debug_print_file()
-        
+
+        self.store_file(file_name,abs_path)
+        self.get_file_without_label()
+    
     def debug_print_file(self):
-        for line in self.content:
+        for line in self.file_content:
             print(line)
         
-    def store_file(self):
-        content = []
-        for line in self.asm_file.readlines():
-            content.append(line)
-        return content
+    def store_file(self,file_name,abs_path):
+        self.asm_file = open(abs_path+"\\"+file_name,"r")
+        if self.asm_file is None:
+            print("file error")
     
-    def get_file_without_symbol(self):
-        line_count = 0
-        for i in range(len(self.content)):
-            line = self.content[i]
-            line = Parser.get_clean_line(line)
-            if (line == ''):
-                self.content[i] = line
+        for line in self.asm_file.readlines():
+            if line == '':
                 continue
-            line = self.process_symbol(line,line_count)
+            self.file_content.append(line)
+        self.asm_file.close()
+    
+    def get_file_without_label(self):
+        line_count = 0
+        for i in range(len(self.file_content)):
+            line = self.file_content[i]
+            line = Parser.get_clean_line(line)
+            
             if (line == ''):
-                self.content[i] = line
+                self.file_content[i] = line
+                continue
+            
+            line = self.process_label(line,line_count)
+            self.file_content[i] = line
+            
+            is_label = line == ""
+            if is_label:
                 continue
             line_count += 1
-            self.content[i] = line
+            
+    def process_label(self,line,address):
+        starter = line[0]
+        if starter == "(":
+            label_name = line[1:-1]
+            self.assign_address_to_label(label_name,address) 
+            line = ""        
+        return line
+    
            
     @staticmethod
     def get_clean_line(line):
@@ -61,19 +77,9 @@ class Parser():
         return line
 
     
-    def process_symbol(self,line,address):
-        starter = line[0]
-        if starter == "(":
-            label_name = line[1:-1]
-            self.assign_address_to_label(label_name,address) 
-            line = ""        
-        return line
-    
-    
-    
     
     def parse(self):
-        for line in self.content:
+        for line in self.file_content:
             not_empty,result_bin_code = self.parse_line(line)
             if not_empty:
                 self.bin_file_buffer.append(result_bin_code)
@@ -93,26 +99,27 @@ class Parser():
 
     def get_a_instruction_code(self,line):
         binary_code = ""
-        address = line[1:]
+        value = line[1:]
 
-        if address in predefined_symbol:
-            address = Parser.replace_predefined_symbol(address)
-        elif address in self.label_map:
-            address = self.replace_label(address)
-        elif address in self.variable_map:
-            address = self.replace_variable(address)
+        if value in predefined_symbol:
+            value = Parser.replace_predefined_symbol(value)
+        elif value in self.label_map:
+            value = self.replace_label(value)
+        elif value in self.variable_map:
+            value = self.replace_variable(value)
         else:
-            is_variable = not address.isdecimal()
+            is_variable = not value.isdecimal()
             if is_variable:
-                self.assign_address_to_variable(address)
-                address = self.replace_variable(address)
+                self.assign_address_to_variable(value)
+                value = self.replace_variable(value)
         try:
-            address = int(address)
-            binary_code = bin(address)[2:].zfill(16)
+            value = int(value)
+            binary_code = bin(value)[2:].zfill(16)
         except:
-            print("error: address can't be non number")
-            print(address)
+            print("error: value can't be non number")
+            print(value)
         return binary_code
+        
         
     @staticmethod
     def get_c_instruction_code(line):
@@ -120,7 +127,6 @@ class Parser():
         comp_code, jump_code = rest.split(";") if ";" in rest else (rest, "")
         
         binary_code = "111{}{}{}".format(comp[comp_code],dest[dest_code],jump[jump_code])
-
         return binary_code
 
 
@@ -134,6 +140,7 @@ class Parser():
     
     def replace_label(self,label_name):
         return self.label_map[label_name]
+        
         
     def assign_address_to_variable(self,variable_name):
         self.variable_map[variable_name] = self.free_address

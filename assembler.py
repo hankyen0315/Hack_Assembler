@@ -12,13 +12,17 @@ if __name__ == "__main__":
         print("Usage:python assembler.py <asmfile.asm>")
     file_name = str(argv[1])
     file_partial_name = file_name.split(".")[0]
+    
+    sub_dir_asm = "\\Hack Assembly"
+    sub_dir_bin = "\\Hack Machine Code"
     abs_path = str(getcwd())
     
-    parser = Parser(file_name,abs_path = abs_path)
+    abs_path_to_input = abs_path + sub_dir_asm
+    parser = Parser(file_name,abs_path = abs_path_to_input)
     parser.parse()
     
-    
-    output_file = open(abs_path+"\\"+file_partial_name+".hack", "w")
+    abs_path_to_ouput = abs_path+sub_dir_bin
+    output_file = open(abs_path_to_ouput+"\\"+file_partial_name+".hack", "w")
     for code in parser.bin_file_buffer:
         output_file.write(code+"\n")
     output_file.close()
